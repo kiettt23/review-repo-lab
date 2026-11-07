@@ -1,0 +1,33 @@
+name: trial
+on:
+  workflow_dispatch:
+    inputs:
+      repo:
+        description: owner/name of the repository to try
+        required: true
+      ref:
+        description: branch, tag or commit
+        required: false
+        default: HEAD
+      command:
+        description: shell command to run inside the cloned repository
+        required: true
+permissions: {}
+jobs:
+  trial:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Clone
+        env:
+          REPO: ${{ inputs.repo }}
+          REF: ${{ inputs.ref }}
+        run: |
+          git clone "https://github.com/$REPO.git" target
+          git -C target checkout "$REF"
+          echo "Commit: $(git -C target rev-parse HEAD)"
+      - name: Run
+        working-directory: target
+        env:
+          COMMAND: ${{ inputs.command }}
+        run: bash -c "$COMMAND"
